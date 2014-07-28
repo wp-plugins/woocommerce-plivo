@@ -43,7 +43,7 @@ if(in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_o
          * Main WooCommerce_Plivo Class
          *
          * @class WooCommerce_Plivo
-         * @version 1.0
+         * @version 1.1
          */
         final class WooCommerce_Plivo
         {
@@ -57,7 +57,7 @@ if(in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_o
              *
              * @var string
              */
-            public static $version = "1.0";
+            public static $version = "1.1";
 
 
             /**
@@ -67,15 +67,19 @@ if(in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_o
              */
             function __construct()
             {
-                register_activation_hook(__FILE__, array($this, 'activation'));
-
                 // Register the autoloader classes.
                 spl_autoload_register(array($this, 'autoload'));
                 spl_autoload_register(array($this, 'autoload_plivo'));
 
-                $this->includes();
-                $this->register_scripts();
+                // Use the fallback HTTP_Request2 if the PEAR package is not available.
+                if(!$this->HTTP_Request2_Available())
+                {
+                    ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . $this->plugin_path() . 'library');
+                }
 
+                $this->includes();
+
+                $this->register_scripts();
 
                 $this->init();
 
@@ -97,20 +101,6 @@ if(in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_o
                 return self::$_instance;
             }
 
-            /**
-             * Checks for plugin compatibility. The HTTP_Request2 class needs to be installed.
-             */
-            public function activation()
-            {
-                // Let's check if we can include the Request2.php file.
-                @$include = include('HTTP/Request2.php');
-
-                if(!$include)
-                {
-                    // Abort the activation.
-                    wp_die('Could not activate plugin, the HTTP_Request2 PEAR plugin is not installed on this webserver.', 'WooCommerce Plivo Plugin', array('response' => 200, 'back_link' => true));
-                }
-            }
 
             /**
              * Handles file includes, like functions.
@@ -228,11 +218,13 @@ if(in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_o
                     $this->admin_hooks();
                 }
 
+                $this->frontend_hooks();
+
                 $this->hooks();
             }
 
             /**
-             * Enables the needed hooks.
+             * Enables the needed admin hooks.
              */
             private function admin_hooks()
             {
@@ -259,6 +251,26 @@ if(in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_o
                 new WCP_Admin_Nag_Window();
                 new WCP_Admin_Add_Settings_Link();
                 new WCP_Admin_Setting_Fields();
+            }
+
+            /**
+             * Enables the needed frontend hooks.
+             */
+            private function frontend_hooks()
+            {
+                // First check if the plugin is configured properly.
+                if(is_wcp_ready())
+                {
+                    add_action('init', array($this, 'frontend_init'));
+                }
+            }
+
+            /**
+             * Initializes all of the frontend classes.
+             */
+            public function frontend_init()
+            {
+                new WCP_Opt_In_Out();
             }
 
             /**
@@ -292,6 +304,20 @@ if(in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_o
             public function init_status_hooks()
             {
                 new WCP_Status_Hook();
+            }
+
+            /**
+             * Checks for availability of the HTTP_Request2 PEAR package
+             *
+             * @return bool
+             */
+            private function HTTP_Request2_Available()
+            {
+                if(class_exists('HTTP_Request2', false)) return true;
+
+                @$include = include('HTTP/Request2.php');
+
+                return $include === 1;
             }
         }
 

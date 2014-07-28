@@ -98,21 +98,35 @@ class WCP_Admin_Setting_Fields
         $settings['auth_token'] = array('name' => __('Auth Token', 'woocommerce-plivo'), 'type' => 'password', 'id' => 'wcp_auth_password', 'desc_tip' => __('Required. Needed to make the magic happen.', 'woocommerce-plivo'));
         $settings['from_number'] = array('name' => __('From number', 'woocommerce-plivo'), 'type' => 'text', 'id' => 'wcp_from_number', 'desc_tip' => __('Required. Needed to make the magic happen.', 'woocommerce-plivo'));
         $settings['section_end'] = array('type' => 'sectionend', 'id' => 'wcp_settings_section_end');
+
+        $settings['optout_settings_title'] = array('name' => __('Opt-in/Opt-out for customers', 'woocommerce-plivo'), 'type' => 'title', 'desc' => __('Should the customer be able to opt-out of SMS status notifications?', 'woocommerce-plivo'), 'id' => 'wcp_optout_settings_title');
+        $settings['optout_enabled'] = array('name' => __('Enable opt-out for clients', 'woocommerce-plivo'), 'type' => 'checkbox', 'desc' => '', 'id' => 'wcp_optout_enabled', 'default' => 'yes');
+        $settings['optout_default'] = array('name' => __('Opt-in checkbox default', 'woocommerce-plivo'), 'type' => 'select', 'options' => array('yes' => __('Checked', 'woocommerce-plivo'), 'no' => __('Unchecked', 'woocommerce-plivo')), 'desc' => '', 'id' => 'wcp_optout_default', 'default' => 'yes');
+        $settings['optout_message'] = array('name' => __('Opt-in checkbox message', 'woocommerce-plivo'), 'type' => 'text', 'id' => 'wcp_optout_message', 'default' => __('I want to receive SMS notifications.', 'woocommerce-plivo'));
+
+        $settings['section_end2'] = array('type' => 'sectionend', 'id' => 'wcp_settings_section_end2');
+
         $settings['notification_settings_title'] = array('name' => __('Notification settings and messages', 'woocommerce-plivo'), 'type' => 'title', 'desc' => __('Choose when to send a status notification message and modify the content of the messages.', 'woocommerce-plivo'), 'id' => 'wcp_notification_settings_section_title');
         $settings['notification_on'] = array('title' => __('Auto send notification on:', 'woocommerce-plivo'), 'type' => 'multiselect', 'class' => 'multiselect chosen_select', 'id' => 'wcp_notification', 'options' => $this->get_option_terms());
 
         $settings = array_merge($settings, $this->generate_optional_textareas());
 
-        $settings['section_end2'] = array('type' => 'sectionend', 'id' => 'wcp_settings_section_end');
-        $settings['demo_title'] = array('name' => __('Send a test SMS', 'woocommerce-plivo'), 'type' => 'title', 'id' => 'wcp_demo_section_title');
-        $settings['demo_phone_number'] = array('name' => __('Phone Number', 'woocommerce-plivo'), 'type' => 'text', 'id' => 'wcp_demo_phone_number', 'desc_tip' => __('Phone number to send the test message to.', 'woocommerce-plivo'));
+        $settings['section_end3'] = array('type' => 'sectionend', 'id' => 'wcp_settings_section_end3');
 
-        $settings['demo_message'] = array('name' => __('Message', 'woocommerce-plivo'), 'type' => 'textarea', 'id' => 'wcp_demo_message', 'default' => 'Test message', 'desc_tip' => __('Test message to send to your mobile.', 'woocommerce-plivo'),
+        $auth_token = get_option('wcp_auth_password', '');
+        $auth_id = get_option('wcp_auth_id', '');
+        $from = get_option('wcp_from_number', '');
 
-        );
-        $settings['demo_send_button'] = array('name' => '', 'type' => 'text', 'class' => 'hidden', 'id' => 'wcp_send_button', 'desc' => '<a href="" class="button">' . __('Send', 'woocommerce-plivo') . '</a>',);
+        if(!empty($auth_token) && !empty($auth_id) && !empty($from))
+        {
+            $settings['demo_title'] = array('name' => __('Send a test SMS', 'woocommerce-plivo'), 'type' => 'title', 'id' => 'wcp_demo_section_title');
+            $settings['demo_phone_number'] = array('name' => __('Phone Number', 'woocommerce-plivo'), 'type' => 'text', 'id' => 'wcp_demo_phone_number', 'desc_tip' => __('Phone number to send the test message to.', 'woocommerce-plivo'));
 
-        $settings['demo_section_end'] = array('type' => 'sectionend', 'id' => 'wcp_semo_section_end');
+            $settings['demo_message'] = array('name' => __('Message', 'woocommerce-plivo'), 'type' => 'textarea', 'id' => 'wcp_demo_message', 'default' => 'Test message', 'desc_tip' => __('Test message to send to your mobile.', 'woocommerce-plivo'));
+            $settings['demo_send_button'] = array('name' => '', 'type' => 'text', 'class' => 'hidden', 'id' => 'wcp_send_button', 'desc' => '<a href="" class="button">' . __('Send', 'woocommerce-plivo') . '</a>');
+
+            $settings['demo_section_end'] = array('type' => 'sectionend', 'id' => 'wcp_semo_section_end');
+        }
 
         return apply_filters('woocommerce_sms_settings', $settings);
     }
